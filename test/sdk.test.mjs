@@ -360,3 +360,21 @@ test("registration endpoints never send a bearer credential", async () => {
   assert.ok(seen.every((x) => !x.init.headers.Authorization));
   assert.equal(JSON.stringify(r), "{}");
 });
+test("AMD exact amounts and percentages reach the API without precision loss", async () => {
+  const c = client(quote);
+  for (const item of [{symbol:"AMD", amount:"0.123456789012345678"}, {symbol:"AMD", percentage:50}]) {
+    const input = {method:"rwa", sender, recipient, items:[item,{symbol:"AAPL",amount:"1"}]};
+    await c.quote(input);
+    assert.deepEqual(JSON.parse(calls.at(-1).init.body),input);
+  }
+});
+test("eleven supported symbols retain a ten-asset basket maximum", async () => {
+  const c = client(quote);
+  const symbols = ["NVDA","AAPL","TSLA","MSFT","AMZN","GOOGL","META","SPY","MSTR","QQQ","AMD"];
+  await c.quote({method:"rwa",sender,recipient,items:symbols.slice(1).map(symbol=>({symbol,amount:"1"}))});
+  const before=calls.length;
+  for(const items of [symbols.map(symbol=>({symbol,amount:"1"})),[{symbol:"AMD",amount:"1"},{symbol:"AMD",percentage:25}],[{symbol:"UNKNOWN",amount:"1"}]]) {
+    await assert.rejects(c.quote({method:"rwa",sender,recipient,items}));
+  }
+  assert.equal(calls.length,before);
+});

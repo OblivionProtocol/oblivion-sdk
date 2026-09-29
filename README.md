@@ -1,6 +1,6 @@
 # Oblivion Protocol SDK
 
-TypeScript and JavaScript client for the Oblivion API on chain **4663**. Supports Abstraction, Reactive Mesh, Multi-send (fixed or random-in-range), and the ten supported RWA assets. Version 0.1.0 is distributed through npm and GitHub Releases.
+TypeScript and JavaScript client for the Oblivion API on chain **4663**. Supports Abstraction, Reactive Mesh, Multi-send (fixed or random-in-range), and the eleven supported RWA assets. Version 0.1.1 is distributed through npm and GitHub Releases.
 
 ## Installation
 
@@ -10,7 +10,7 @@ Node.js 22 or newer for your backend. Install the SDK:
 npm install @oblivion-protocol/sdk
 ```
 
-The package includes compiled JavaScript and TypeScript declarations. You can also download the audited tarball and checksum from [GitHub Releases](https://github.com/OblivionProtocol/oblivion-sdk/releases/tag/v0.1.0). Source checkouts require `npm ci && npm run build`.
+The package includes compiled JavaScript and TypeScript declarations. You can also download the audited tarball and checksum from [GitHub Releases](https://github.com/OblivionProtocol/oblivion-sdk/releases/tag/v0.1.1). Source checkouts require `npm ci && npm run build`.
 
 Three entry points:
 
@@ -59,7 +59,7 @@ const rwa = await api.quote({
 });
 ```
 
-Use `api.assets()` for the asset catalog and `api.balances(sender)` for native and individual asset balances. A failed asset balance is `raw: null`, not zero. Percentages supported: 25, 50, 75, 100. Assets: NVDA, AAPL, TSLA, MSFT, AMZN, GOOGL, META, SPY, MSTR, QQQ.
+Use `api.assets()` for the asset catalog and `api.balances(sender)` for native and individual asset balances. A failed asset balance is `raw: null`, not zero. Percentages supported: 25, 50, 75, 100. Supported assets: NVDA, AAPL, TSLA, MSFT, AMZN, GOOGL, META, SPY, MSTR, QQQ, AMD. AMD is supported starting with v0.1.1. The basket limit remains 10 assets.
 
 RWA requires an approval for each selected asset, followed by one execution transaction. Call `api.prepareApproval(rwa.quote)`, review the exact spender/amount against the quote, have the wallet confirm it and wait for its receipt. Then request the next approval. Repeat until `{ complete: true }`, then simulate and prepare. Do not send approvals concurrently. Approvals are separate on-chain transactions and remain in place if execution fails. Changes to sender nonce or unrelated wallet transactions may invalidate the quote; do not reuse stale requests.
 

@@ -10,7 +10,8 @@ export type AssetSymbol =
   | "META"
   | "SPY"
   | "MSTR"
-  | "QQQ";
+  | "QQQ"
+  | "AMD";
 export type Method = "abstraction" | "mesh" | "multisend" | "rwa";
 export type QuoteInput = { sender: Address; seed?: Hex } & (
   | { method: "abstraction" | "mesh"; recipient: Address; amount: string }

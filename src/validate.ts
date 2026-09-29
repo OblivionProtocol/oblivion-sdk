@@ -79,6 +79,7 @@ export function quoteInput(v: QuoteInput) {
         "SPY",
         "MSTR",
         "QQQ",
+        "AMD",
       ];
       if (!Array.isArray(v.items) || v.items.length < 1 || v.items.length > 10)
         invalid("Use 1–10 supported assets.");
