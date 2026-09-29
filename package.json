@@ -1,0 +1,73 @@
+{
+  "name": "@oblivion-protocol/sdk",
+  "version": "0.1.0",
+  "description": "Typed client and wallet helpers for the Oblivion Partner API",
+  "type": "module",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "SECURITY.md",
+    "CHANGELOG.md"
+  ],
+  "main": "./dist/cjs/server.js",
+  "types": "./dist/esm/server.d.ts",
+  "exports": {
+    ".": {
+      "browser": "./dist/esm/browser.js",
+      "import": {
+        "types": "./dist/esm/server.d.ts",
+        "default": "./dist/esm/server.js"
+      },
+      "require": {
+        "types": "./dist/cjs/server.d.ts",
+        "default": "./dist/cjs/server.js"
+      }
+    },
+    "./wallet": {
+      "import": {
+        "types": "./dist/esm/wallet.d.ts",
+        "default": "./dist/esm/wallet.js"
+      },
+      "require": {
+        "types": "./dist/cjs/wallet.d.ts",
+        "default": "./dist/cjs/wallet.js"
+      }
+    },
+    "./registration": {
+      "import": {
+        "types": "./dist/esm/registration.d.ts",
+        "default": "./dist/esm/registration.js"
+      },
+      "require": {
+        "types": "./dist/cjs/registration.d.ts",
+        "default": "./dist/cjs/registration.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "prepack": "npm run test",
+    "check:public": "node scripts/check-public.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OblivionProtocol/oblivion-sdk.git"
+  },
+  "homepage": "https://github.com/OblivionProtocol/oblivion-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/OblivionProtocol/oblivion-sdk/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
