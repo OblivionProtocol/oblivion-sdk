@@ -1,16 +1,16 @@
 # Oblivion Protocol SDK
 
-TypeScript and JavaScript client for the Oblivion API on chain **4663**. Supports Abstraction, Reactive Mesh, Multi-send (fixed or random-in-range), and the ten supported RWA assets. Version 0.1.0 is distributed through GitHub Releases. npm publication is pending.
+TypeScript and JavaScript client for the Oblivion API on chain **4663**. Supports Abstraction, Reactive Mesh, Multi-send (fixed or random-in-range), and the ten supported RWA assets. Version 0.1.0 is distributed through npm and GitHub Releases.
 
 ## Installation
 
-Node.js 22 or newer for your backend. Install the packaged release:
+Node.js 22 or newer for your backend. Install the SDK:
 
 ```sh
-npm install https://github.com/OblivionProtocol/oblivion-sdk/releases/download/v0.1.0/oblivion-protocol-sdk-0.1.0.tgz
+npm install @oblivion-protocol/sdk
 ```
 
-The tarball contains compiled JavaScript and TypeScript declarations. Source checkouts require `npm ci && npm run build`. npm registry publication under `@oblivion-protocol/sdk` is pending; do not assume a similarly named registry package is this release.
+The package includes compiled JavaScript and TypeScript declarations. You can also download the audited tarball and checksum from [GitHub Releases](https://github.com/OblivionProtocol/oblivion-sdk/releases/tag/v0.1.0). Source checkouts require `npm ci && npm run build`.
 
 Three entry points:
 
