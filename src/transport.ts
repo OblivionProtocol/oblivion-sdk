@@ -14,6 +14,7 @@ const errorCodes = new Set([
   "DUST",
   "EXPIRED",
   "FEE_NOT_VERIFIED",
+  "PAYOUT_NOT_VERIFIED",
   "GAS_LIMIT",
   "INITCODE_LIMIT",
   "INSUFFICIENT_ETH",

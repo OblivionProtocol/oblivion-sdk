@@ -1,6 +1,6 @@
 {
   "name": "@oblivion-protocol/sdk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Typed client and wallet helpers for the Oblivion Partner API",
   "type": "module",
   "license": "UNLICENSED",

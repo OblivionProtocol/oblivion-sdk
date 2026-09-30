@@ -12,11 +12,19 @@ export type AssetSymbol =
   | "MSTR"
   | "QQQ"
   | "AMD";
+export type TokenSymbol = AssetSymbol | "USDG";
+export type TransferAsset = "ETH" | "USDG";
 export type Method = "abstraction" | "mesh" | "multisend" | "rwa";
 export type QuoteInput = { sender: Address; seed?: Hex } & (
-  | { method: "abstraction" | "mesh"; recipient: Address; amount: string }
+  | {
+      method: "abstraction" | "mesh";
+      asset?: TransferAsset;
+      recipient: Address;
+      amount: string;
+    }
   | {
       method: "multisend";
+      asset?: TransferAsset;
       recipients: Address[];
       route: "direct" | "abstraction" | "mesh";
       allocation:
@@ -43,6 +51,8 @@ export interface Features {
   version: string;
   chainId: 4663;
   methods: Method[];
+  transferAssets?: TransferAsset[];
+  usdgMultisendRoutes?: ("abstraction" | "mesh")[];
   fee: Fee;
   approvalsCharged: boolean;
   gasIncluded: boolean;
@@ -50,7 +60,7 @@ export interface Features {
   serverBroadcasts: false;
 }
 export interface Asset {
-  symbol: AssetSymbol;
+  symbol: TokenSymbol;
   name: string;
   address: Address;
   decimals: number;
@@ -60,13 +70,19 @@ export interface Balances {
   chainId: 4663;
   ethWei: string;
   assets: (
-    | { symbol: AssetSymbol; address: Address; raw: string; decimals: number }
-    | { symbol: AssetSymbol; raw: null; error: "BALANCE_UNAVAILABLE" }
+    | { symbol: TokenSymbol; address: Address; raw: string; decimals: number }
+    | { symbol: TokenSymbol; raw: null; error: "BALANCE_UNAVAILABLE" }
   )[];
 }
 export type Payout =
   | { recipient: Address; amountWei: string }
-  | { recipient: Address; symbol: AssetSymbol; amount: string };
+  | {
+      recipient: Address;
+      symbol: TokenSymbol;
+      amount: string;
+      amountRaw?: string;
+      decimals?: number;
+    };
 export interface TransactionRequest {
   from: Address;
   chainId: Hex;
@@ -87,7 +103,7 @@ export interface Quote {
   payouts: Payout[];
   approvalCount: number;
   approvals: {
-    symbol: AssetSymbol;
+    symbol: TokenSymbol;
     spender: Address;
     amountRaw: string;
     nonce: Hex;
@@ -113,7 +129,7 @@ export type Approval =
   | {
       complete: false;
       index: number;
-      symbol: AssetSymbol;
+      symbol: TokenSymbol;
       feeWei: "0";
       request: TransactionRequest;
       warning: string;

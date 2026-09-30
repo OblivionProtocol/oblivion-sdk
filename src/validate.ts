@@ -15,13 +15,18 @@ export function token(v: unknown) {
   if (typeof v !== "string" || !v.length || v.length > 16000)
     invalid("A valid opaque token is required.");
 }
-export function decimal(v: unknown): bigint {
-  if (typeof v !== "string" || !/^\d+(\.\d{1,18})?$/.test(v) || v.length > 100)
+export function decimal(v: unknown, decimals = 18): bigint {
+  if (
+    typeof v !== "string" ||
+    !new RegExp(`^\\d+(\\.\\d{1,${decimals}})?$`).test(v) ||
+    v.length > 100
+  )
     invalid(
-      "Amounts must be positive decimal strings, with at most 18 decimals.",
+      `Amounts must be positive decimal strings, with at most ${decimals} decimals.`,
     );
   const [a, b = ""] = v.split(".");
-  const n = BigInt(a) * 10n ** 18n + BigInt(b.padEnd(18, "0"));
+  const n =
+    BigInt(a) * 10n ** BigInt(decimals) + BigInt(b.padEnd(decimals, "0"));
   if (n <= 0n || n >= 2n ** 256n)
     invalid("Amount is outside the supported range.");
   return n;
@@ -34,7 +39,16 @@ export function quoteInput(v: QuoteInput) {
     !(typeof v.seed === "string" && /^0x[0-9a-f]{64}$/i.test(v.seed))
   )
     invalid("Seed must be bytes32.");
+  const asset = (v as any).asset;
+  if (
+    asset !== undefined &&
+    (v.method === "rwa" || !["ETH", "USDG"].includes(asset))
+  )
+    invalid("Unsupported transfer asset.");
+  const decimals = asset === "USDG" ? 6 : 18;
   if (v.method === "multisend") {
+    if (asset === "USDG" && v.route === "direct")
+      invalid("USDG multi-send supports abstraction or mesh.");
     if (
       !Array.isArray(v.recipients) ||
       v.recipients.length < 2 ||
@@ -54,9 +68,12 @@ export function quoteInput(v: QuoteInput) {
       !object(v.allocation)
     )
       invalid("Invalid multi-send route or allocation.");
-    if (v.allocation.mode === "fixed") decimal(v.allocation.amount);
+    if (v.allocation.mode === "fixed") decimal(v.allocation.amount, decimals);
     else if (v.allocation.mode === "random") {
-      if (decimal(v.allocation.min) > decimal(v.allocation.max))
+      if (
+        decimal(v.allocation.min, decimals) >
+        decimal(v.allocation.max, decimals)
+      )
         invalid("Minimum exceeds maximum.");
     } else invalid("Invalid allocation mode.");
   } else {
@@ -66,7 +83,8 @@ export function quoteInput(v: QuoteInput) {
       v.recipient.toLowerCase() === v.sender.toLowerCase()
     )
       invalid("A valid destination different from sender is required.");
-    if (v.method === "abstraction" || v.method === "mesh") decimal(v.amount);
+    if (v.method === "abstraction" || v.method === "mesh")
+      decimal(v.amount, decimals);
     else if (v.method === "rwa") {
       const symbols = [
         "NVDA",

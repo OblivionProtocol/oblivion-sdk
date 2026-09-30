@@ -1,6 +1,51 @@
 # Oblivion Protocol SDK
 
-TypeScript and JavaScript client for the Oblivion API on chain **4663**. Supports Abstraction, Reactive Mesh, Multi-send (fixed or random-in-range), and the eleven supported RWA assets. Version 0.1.1 is distributed through npm and GitHub Releases.
+TypeScript and JavaScript client for the Oblivion API on chain **4663**. Supports Abstraction, Reactive Mesh, Multi-send (fixed or random-in-range), and the eleven supported RWA assets. Version 0.1.2 is distributed through npm and GitHub Releases.
+
+## Asset scope
+
+| Workflow | ETH | USDG | Listed RWA tokens |
+| --- | --- | --- | --- |
+| Website Abstraction, Reactive Mesh and Multi-send | Supported | Supported | Use the RWA basket flow |
+| Website RWA baskets | Not applicable | Not supported | Supported; up to 10 assets per basket |
+| Signed invoice service (`/api/invoices/*`) | Supported | Supported | Not supported |
+| Partner API with USDG bundle + SDK v0.1.2  | Supported | Supported | Supported |
+| SDK v0.1.1 | Supported | Not supported | Supported |
+
+The USDG integration adds `asset: "USDG"` to Partner Abstraction, Reactive Mesh and Multi-send quotes. Omitting `asset` retains ETH behavior. USDG has **6 decimals** and a **0.001024 USDG combined minimum**. Multi-send supports `abstraction` or `mesh`, with fixed or random-in-range allocation. USDG is a transfer asset, not an RWA basket symbol.
+
+USDG requires SDK 0.1.2 and the updated API bundle. SDK 0.1.1 does not support USDG. Check `features().transferAssets` for `USDG` before enabling it; the backend only advertises USDG when its fee-enabled execution bundle is installed. The separate invoice service still uses wallet signatures; the SDK has no invoice-specific client.
+
+Website and invoice USDG amounts use **6 decimals**, with a combined transfer minimum of **0.001024 USDG**. Users approve the exact token amount before simulation, then review and confirm execution. Both approval and execution require ETH for gas. These public flows have no platform fee. Partner API execution fees and developer registration fees are separate and paid in ETH. Partner USDG executions charge **0.00001 ETH**, in addition to gas. Approval is fee-free. Token payouts are not reduced by this ETH fee.
+
+## USDG integration
+
+```ts
+const features = await api.features();
+if (!features.transferAssets?.includes('USDG')) throw new Error('USDG unavailable');
+const quote = await api.quote({
+  method: 'abstraction', // or 'mesh'
+  asset: 'USDG',
+  sender,
+  recipient,
+  amount: '10.123456', // exact string, six decimals
+});
+const approval = await api.prepareApproval(quote.quote);
+// Review the token address, predicted executor and exact amountRaw.
+// The user confirms approval in their wallet; wait for a successful receipt.
+// Then call prepareApproval again and require complete === true.
+const simulation = await api.simulate(quote.quote);
+// Only after the user selects Execute:
+const prepared = await api.prepare(simulation.simulation);
+// Review and sign prepared.request in the user wallet. Do not add a to address.
+// Its native value includes the ETH API fee; do not add the fee a second time.
+```
+
+For USDG Multi-send use `method: 'multisend'`, `asset: 'USDG'`, `route: 'abstraction'` or `'mesh'`, and the existing fixed/random allocation fields. Each payout returns `symbol: 'USDG'`, decimal `amount`, integer `amountRaw` and `decimals: 6`. Allocations stay fixed across quote, simulation and prepare.
+
+One approval is planned at the current wallet nonce; the transfer executor is predicted at the following nonce. Unrelated wallet transactions invalidate that plan. An exact allowance is required; do not use unlimited approval. Approval alone does not transfer USDG or pay the API fee. A reverted transfer preserves the prior approval; reconcile before issuing a new quote. Both steps need ETH for gas.
+
+`assets()` and `balances()` include USDG separately from the eleven stock/ETF assets. Filter USDG out of RWA basket selectors. Settlement requires a matching transaction, canonical receipt with two L2 confirmations, the exact ETH fee event, and matching USDG completion/payout events. Two L2 confirmations do not imply L1 finality.
 
 ## Installation
 
@@ -10,7 +55,7 @@ Node.js 22 or newer for your backend. Install the SDK:
 npm install @oblivion-protocol/sdk
 ```
 
-The package includes compiled JavaScript and TypeScript declarations. You can also download the audited tarball and checksum from [GitHub Releases](https://github.com/OblivionProtocol/oblivion-sdk/releases/tag/v0.1.1). Source checkouts require `npm ci && npm run build`.
+The package includes compiled JavaScript and TypeScript declarations. You can also download the release tarball and checksum from [GitHub Releases](https://github.com/OblivionProtocol/oblivion-sdk/releases/tag/v0.1.2). Source checkouts require `npm ci && npm run build`.
 
 Three entry points:
 
@@ -32,7 +77,7 @@ const quote = await api.quote({
   method: 'abstraction', // or 'mesh'
   sender: '0x1111111111111111111111111111111111111111',
   recipient: '0x2222222222222222222222222222222222222222',
-  amount: '0.01', // decimal string, never a floating-point number
+  amount: '0.01', // ETH decimal string; not USDG or a floating-point number
 });
 const simulation = await api.simulate(quote.quote);
 // After the user reviews simulation and explicitly selects Execute:
