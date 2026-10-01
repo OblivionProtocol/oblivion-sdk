@@ -40,6 +40,31 @@ export function quoteInput(v: QuoteInput) {
   )
     invalid("Seed must be bytes32.");
   const asset = (v as any).asset;
+  if (asset === "ERC20") {
+    if (
+      v.method !== "abstraction" ||
+      !address((v as any).token) ||
+      BigInt((v as any).token) === 0n
+    )
+      invalid("ERC20 requires an abstraction token contract address.");
+    if (
+      !address(v.recipient) ||
+      BigInt(v.recipient) === 0n ||
+      v.recipient.toLowerCase() === v.sender.toLowerCase()
+    )
+      invalid("Invalid recipient.");
+    if (
+      typeof v.amount !== "string" ||
+      !/^\d{1,78}(\.\d{1,36})?$/.test(v.amount) ||
+      BigInt(v.amount.replace(".", "")) <= 0n
+    )
+      invalid(
+        "Use a positive decimal amount; the API checks the token's exact precision.",
+      );
+    return;
+  }
+  if ("token" in v) invalid("token is only valid with asset ERC20.");
+
   if (
     asset !== undefined &&
     (v.method === "rwa" || !["ETH", "USDG"].includes(asset))

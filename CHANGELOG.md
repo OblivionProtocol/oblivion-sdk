@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.3 — 2026-10-01
+
+- Discover a token contract, decimals and wallet balance.
+- Prepare single-recipient ERC-20 abstraction with exact approvals.
+- Preserve raw payout precision and token-address identity.
+- Existing ETH, USDG and RWA request types remain available.
+
+
 ## 0.1.2 — 2026-09-30
 
 - Add explicit ETH/USDG selection to Abstraction, Reactive Mesh and Multi-send. Omitted asset remains ETH.

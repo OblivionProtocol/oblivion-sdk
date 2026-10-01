@@ -1,6 +1,6 @@
 # Oblivion Protocol SDK
 
-TypeScript and JavaScript client for the Oblivion API on chain **4663**. Supports Abstraction, Reactive Mesh, Multi-send (fixed or random-in-range), and the eleven supported RWA assets. Version 0.1.2 is distributed through npm and GitHub Releases.
+TypeScript and JavaScript client for the Oblivion API on chain **4663**. Supports Abstraction, Reactive Mesh, Multi-send (fixed or random-in-range), and the eleven supported RWA assets. Version 0.1.3 is distributed through npm and GitHub Releases.
 
 ## Asset scope
 
@@ -55,7 +55,7 @@ Node.js 22 or newer for your backend. Install the SDK:
 npm install @oblivion-protocol/sdk
 ```
 
-The package includes compiled JavaScript and TypeScript declarations. You can also download the release tarball and checksum from [GitHub Releases](https://github.com/OblivionProtocol/oblivion-sdk/releases/tag/v0.1.2). Source checkouts require `npm ci && npm run build`.
+The package includes compiled JavaScript and TypeScript declarations. You can also download the release tarball and checksum from [GitHub Releases](https://github.com/OblivionProtocol/oblivion-sdk/releases/tag/v0.1.3). Source checkouts require `npm ci && npm run build`.
 
 Three entry points:
 
@@ -156,3 +156,22 @@ Custom `baseUrl` and `fetch` are trusted configuration: they can receive your cr
 `npm ci`, `npm test`, `npm run check:public`, then `npm pack`. Tests use mocked transport and wallet fixtures; they do not spend funds or establish mainnet settlement. Review the exact tarball before release. The package currently retains its **UNLICENSED** designation; public source availability does not grant an open-source license.
 
 [API documentation](https://oblivion-protocol.com/docs/) · [Developer registration](https://oblivion-protocol.com/developers/)
+
+### Imported ERC-20 abstraction (SDK 0.1.3)
+
+Requires a backend advertising `ERC20` in `features().transferAssets`. This does not add imported tokens to the curated RWA catalog. Only single-recipient Abstraction is supported initially.
+
+```ts
+const token = await client.erc20Token(tokenAddress, sender);
+// Display token.token.address, symbol, decimals and token.balanceRaw to the user.
+const quote = await client.quote({
+  method: "abstraction",
+  asset: "ERC20",
+  token: tokenAddress,
+  sender,
+  recipient,
+  amount: "1.234567", // Exact decimal string, within the imported token's precision.
+});
+```
+
+Continue through exact approval → simulation → prepare → wallet confirmation → status. The minimum is 1024 raw units. Website transfers have no platform fee; API execution charges 0.00001 ETH plus gas. Taxed, rebasing, paused or otherwise nonstandard tokens may be incompatible. Importing is not an endorsement or security review. Discovery supports 0–36 decimals; the API rejects excess precision rather than rounding.

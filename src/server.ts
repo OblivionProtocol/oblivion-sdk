@@ -21,6 +21,7 @@ import type {
   Prepared,
   TransactionStatus,
   Hex,
+  Erc20TokenResult,
 } from "./types.js";
 export * from "./types.js";
 export { OblivionError } from "./errors.js";
@@ -75,6 +76,31 @@ export class OblivionClient {
         r.sender?.toLowerCase() === wallet.toLowerCase() &&
         uint(r.ethWei) &&
         Array.isArray(r.assets),
+    );
+    return r;
+  }
+  async erc20Token(
+    contract: string,
+    sender?: string,
+    options?: RequestOptions,
+  ) {
+    if (!address(contract) || (sender !== undefined && !address(sender)))
+      invalid("Invalid token or wallet address.");
+    const r = await this.#transport.request<Erc20TokenResult>(
+      "/v1/erc20/token?address=" +
+        contract +
+        (sender ? "&sender=" + sender : ""),
+      undefined,
+      options,
+    );
+    response(
+      r.chainId === 4663 &&
+        address(r.token?.address) &&
+        r.token.address.toLowerCase() === contract.toLowerCase() &&
+        Number.isInteger(r.token.decimals) &&
+        r.token.decimals >= 0 &&
+        r.token.decimals <= 36 &&
+        (r.balanceRaw === undefined || uint(r.balanceRaw)),
     );
     return r;
   }

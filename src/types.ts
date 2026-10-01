@@ -13,18 +13,37 @@ export type AssetSymbol =
   | "QQQ"
   | "AMD";
 export type TokenSymbol = AssetSymbol | "USDG";
-export type TransferAsset = "ETH" | "USDG";
+export type TransferAsset = "ETH" | "USDG" | "ERC20";
+export interface ImportedToken {
+  address: Address;
+  symbol: string;
+  name: string;
+  decimals: number;
+  fingerprint: string;
+}
+export interface Erc20TokenResult {
+  chainId: 4663;
+  token: ImportedToken;
+  balanceRaw?: string;
+}
 export type Method = "abstraction" | "mesh" | "multisend" | "rwa";
 export type QuoteInput = { sender: Address; seed?: Hex } & (
   | {
+      method: "abstraction";
+      asset: "ERC20";
+      token: Address;
+      recipient: Address;
+      amount: string;
+    }
+  | {
       method: "abstraction" | "mesh";
-      asset?: TransferAsset;
+      asset?: Exclude<TransferAsset, "ERC20">;
       recipient: Address;
       amount: string;
     }
   | {
       method: "multisend";
-      asset?: TransferAsset;
+      asset?: Exclude<TransferAsset, "ERC20">;
       recipients: Address[];
       route: "direct" | "abstraction" | "mesh";
       allocation:
@@ -52,6 +71,7 @@ export interface Features {
   chainId: 4663;
   methods: Method[];
   transferAssets?: TransferAsset[];
+  erc20Methods?: ["abstraction"] | [];
   usdgMultisendRoutes?: ("abstraction" | "mesh")[];
   fee: Fee;
   approvalsCharged: boolean;
@@ -75,6 +95,14 @@ export interface Balances {
   )[];
 }
 export type Payout =
+  | {
+      recipient: Address;
+      symbol: string;
+      tokenAddress: Address;
+      amount: string;
+      amountRaw: string;
+      decimals: number;
+    }
   | { recipient: Address; amountWei: string }
   | {
       recipient: Address;
@@ -103,7 +131,7 @@ export interface Quote {
   payouts: Payout[];
   approvalCount: number;
   approvals: {
-    symbol: TokenSymbol;
+    symbol: string;
     spender: Address;
     amountRaw: string;
     nonce: Hex;
@@ -129,7 +157,7 @@ export type Approval =
   | {
       complete: false;
       index: number;
-      symbol: TokenSymbol;
+      symbol: string;
       feeWei: "0";
       request: TransactionRequest;
       warning: string;
