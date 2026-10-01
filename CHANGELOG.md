@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.4 — 2026-10-01
+
+- Add durable confirmation registration with `client.track()`.
+- Add `sendTrackedTransaction()` to report the wallet hash through a backend callback without exposing API keys.
+- Return the existing hash when registration fails; never retry wallet execution automatically.
+
+
 ## 0.1.3 — 2026-10-01
 
 - Discover a token contract, decimals and wallet balance.

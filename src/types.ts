@@ -67,6 +67,7 @@ export interface Fee {
   basis: string;
 }
 export interface Features {
+  transactionTracking?: boolean;
   version: string;
   chainId: 4663;
   methods: Method[];
@@ -167,6 +168,7 @@ export type TransactionStatus =
   | { status: "reverted"; feePaidWei: "0"; payouts: [] }
   | {
       status: "confirmed";
+      usageRecorded?: boolean;
       hash: Hex;
       block: Hex;
       feePaidWei: string;

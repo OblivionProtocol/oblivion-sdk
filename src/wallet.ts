@@ -1,4 +1,4 @@
-import { transaction, address, quantity } from "./validate.js";
+import { transaction, address, quantity, token } from "./validate.js";
 import { OblivionError, invalid } from "./errors.js";
 import type {
   WalletProvider,
@@ -87,5 +87,27 @@ export async function sendReviewedTransaction(
       "WALLET_ERROR",
       "Wallet request did not complete. Check wallet activity before retrying.",
     );
+  }
+}
+
+/** Execution-only helper. register must call your backend, never expose a partner API key.
+ * A registration failure returns the already-broadcast hash and never resubmits funds.
+ */
+export async function sendTrackedTransaction(
+  provider: WalletProvider,
+  prepared: { request: TransactionRequest; tracking: string },
+  review: TransactionReview,
+  register: (submission: {tracking: string; hash: Hex}) => Promise<{registered: true; hash: Hex}>,
+): Promise<{ hash: Hex; tracking: string; trackingRegistered: boolean }> {
+  if (review.kind !== "execution" || typeof register !== "function")
+    invalid("Tracking requires an execution review and a registration callback.");
+  token(prepared.tracking);
+  const tracking = prepared.tracking;
+  const hash = await sendReviewedTransaction(provider, prepared.request, review);
+  try {
+    const result = await register({tracking,hash});
+    return {hash,tracking,trackingRegistered: result?.registered === true && result.hash?.toLowerCase() === hash.toLowerCase()};
+  } catch {
+    return {hash,tracking,trackingRegistered:false};
   }
 }

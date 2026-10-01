@@ -1,6 +1,6 @@
 # Oblivion Protocol SDK
 
-TypeScript and JavaScript client for the Oblivion API on chain **4663**. Supports Abstraction, Reactive Mesh, Multi-send (fixed or random-in-range), and the eleven supported RWA assets. Version 0.1.3 is distributed through npm and GitHub Releases.
+TypeScript and JavaScript client for the Oblivion API on chain **4663**. Supports Abstraction, Reactive Mesh, Multi-send (fixed or random-in-range), and the eleven supported RWA assets. Version 0.1.4 is distributed through npm and GitHub Releases.
 
 ## Asset scope
 
@@ -55,7 +55,7 @@ Node.js 22 or newer for your backend. Install the SDK:
 npm install @oblivion-protocol/sdk
 ```
 
-The package includes compiled JavaScript and TypeScript declarations. You can also download the release tarball and checksum from [GitHub Releases](https://github.com/OblivionProtocol/oblivion-sdk/releases/tag/v0.1.3). Source checkouts require `npm ci && npm run build`.
+The package includes compiled JavaScript and TypeScript declarations. You can also download the release tarball and checksum from [GitHub Releases](https://github.com/OblivionProtocol/oblivion-sdk/releases/tag/v0.1.4). Source checkouts require `npm ci && npm run build`.
 
 Three entry points:
 
@@ -175,3 +175,32 @@ const quote = await client.quote({
 ```
 
 Continue through exact approval → simulation → prepare → wallet confirmation → status. The minimum is 1024 raw units. Website transfers have no platform fee; API execution charges 0.00001 ETH plus gas. Taxed, rebasing, paused or otherwise nonstandard tokens may be incompatible. Importing is not an endorsement or security review. Discovery supports 0–36 decimals; the API rejects excess precision rather than rounding.
+
+
+## Durable confirmation and activity counting (v0.1.4)
+
+After the wallet broadcasts an execution, register its hash **once** through your backend:
+
+```ts
+await client.track(prepared.tracking, hash);
+```
+
+The server persists this registration and checks only that transaction until confirmed, reverted or expired. Confirmed payouts enter the usage counter once per hash, excluding gas and the API fee. A database recording failure is retried. Pending registrations survive service restarts. Checks back off from 15 seconds to five minutes, ending when the signed tracking token expires (seven days after preparation). No block scan or transaction broadcasting is performed by this service.
+
+The browser helper can register immediately after wallet submission:
+
+```ts
+import { sendTrackedTransaction } from "@oblivion-protocol/sdk/wallet";
+const result = await sendTrackedTransaction(wallet, prepared, review, async (submission) => {
+  const response = await fetch("/your-server/register-transfer", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(submission),
+  });
+  if (!response.ok) throw new Error("Registration unavailable");
+  return response.json(); // Your server calls client.track(tracking, hash).
+});
+// Persist result.hash and result.tracking. If trackingRegistered is false,
+// retry registration only; never resubmit the wallet transfer.
+```
+
+Keep the partner API key on your backend. Authenticate your relay endpoint and bind submissions to the appropriate user session. `sendReviewedTransaction` remains unchanged; integrations using it must register the returned hash themselves. Existing `client.status()` calls also enroll the hash when durable tracking is enabled, but explicit `track()` acknowledges durable acceptance. Transactions whose hash never reaches the API cannot be discovered automatically. Queue limits are 128 pending submissions per partner and 4096 globally; retry registration on transient errors.

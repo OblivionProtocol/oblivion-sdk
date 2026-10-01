@@ -155,6 +155,16 @@ export class OblivionClient {
     response(r.request.to === undefined && typeof r.tracking === "string");
     return r;
   }
+  async track(tracking: string, hash: Hex, options?: RequestOptions) {
+    token(tracking);
+    if (!/^0x[0-9a-f]{64}$/i.test(hash)) invalid("Invalid transaction hash.");
+    const r = await this.#transport.request<{hash: Hex; registered: true; state: "queued" | "confirmed" | "reverted" | "failed" | "expired"}>(
+      "/v1/transactions/track", { tracking, hash }, options,
+    );
+    response(r.registered === true && r.hash?.toLowerCase() === hash.toLowerCase() &&
+      ["queued","confirmed","reverted","failed","expired"].includes(r.state));
+    return r;
+  }
   async status(tracking: string, hash: Hex, options?: RequestOptions) {
     token(tracking);
     if (!/^0x[0-9a-f]{64}$/i.test(hash)) invalid("Invalid transaction hash.");
